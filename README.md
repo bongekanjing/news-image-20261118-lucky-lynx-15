@@ -12,7 +12,7 @@ Bounty page: <https://make.fun/bounty/news-image-20261118>
 
 An illustrated front page: a masthead naming the day, thirteen stories each with
 a purpose-drawn vector illustration, a locator map of where they happened, and 24
-one-line briefs. Thirty-seven stories across four continents.
+one-line briefs. Forty-two items across four continents.
 
 Reading order is deliberate:
 
@@ -27,8 +27,11 @@ Reading order is deliberate:
   El Obeid strikes, Nvidia, the Knesset speaker vote, COP31 in Antalya, Hegseth in
   Caracas, and the Long March 2D launch.
 - **Locator map**: all thirteen pinned and numbered, coloured by region, so the
-  day's geography is legible at a glance.
-- **24 briefs** in two columns, from Yemen's children to the Dow's late selloff.
+  day's geography is legible at a glance, with the briefs as small dots.
+- **Two indexes over one set**: the masthead counts the 42 items by region and
+  again by field, and both totals are derived from the content.
+- **29 briefs** in two columns, numbered on from the cards, from the West Bank
+  to the Dow's late selloff.
 
 Every item is a real event of 18 November 2026, as reported by AP, Reuters, AFP,
 Xinhua, UNICEF, UN News, Amnesty International, the ONS and others. No event is
@@ -68,7 +71,7 @@ mkdir -p out && MAKEFUN_OUTPUT_DIR=out python3 main.py
 ```
 
 The page is copied as bytes rather than re-encoded, so both graded runs write
-identical output: a 1024×1024 PNG of about 244 KB, well inside the 1 MiB cap.
+identical output: a 1024×1024 PNG of about 256 KB, well inside the 1 MiB cap.
 
 ## Layout of this repository
 
@@ -91,7 +94,7 @@ cd tools && python3 layout2.py   # writes /tmp/page.png
 
 - Two consecutive runs produce byte-identical output — the program copies bytes and
   re-encodes nothing.
-- The PNG is 1024×1024 and 249,517 bytes — under the 1 MiB limit.
+- The PNG is 1024×1024 and 261,615 bytes — under the 1 MiB limit.
 - All PNG chunk CRCs verify and the stream ends at its IEND marker.
 - No text is clipped, overlapping or below the legibility floor: card text blocks
   are measured against the row below, the page bottom is asserted, and every

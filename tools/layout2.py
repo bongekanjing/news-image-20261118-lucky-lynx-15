@@ -73,6 +73,19 @@ STORIES = [
      cards.space, 112.6, 37.8),
 ]
 
+# brief key -> the subject it belongs to, for the by-field index
+BRIEF_FIELD = {
+    "Israel": "War", "Yemen": "War", "Afghanistan": "War", "Sudan": "War",
+    "Mid-East": "War", "Ukraine": "War", "Pakistan": "Diplomacy",
+    "Europe": "Diplomacy", "Asia": "Economy", "Washington": "Politics",
+    "Britain": "Diplomacy", "India": "Politics", "Russia": "War",
+    "Health": "Society", "Tech": "Tech", "Finance": "Economy",
+    "Nigeria": "Economy", "Sport": "Society", "Africa": "Economy",
+    "Climate": "Climate", "Markets": "Economy", "Americas": "Economy",
+    "Bangladesh": "Economy", "Horn": "War", "Space": "Tech",
+    "Australia": "Diplomacy", "Haiti": "War",
+}
+
 BRIEFS = [
     ("Israel", "Katz threatens more West Bank land seizures", 35.2, 31.9),
     ("Yemen", "UNICEF: 64 children killed since September", 44.2, 15.4),
@@ -98,6 +111,11 @@ BRIEFS = [
     ("Markets", "Gold slips below $3,800 to a one-year low", -74.0, 40.7),
     ("Asia", "KOSPI gains 2.0% on a chip rebound", 127.0, 37.6),
     ("Americas", "Dow falls 848.75 points in a late selloff", -74.0, 40.7),
+    ("Bangladesh", "80 garment factories shut as wage protests spread", 90.4, 24.0),
+    ("Horn", "Ethiopia and Eritrea mass troops on the border", 39.5, 14.6),
+    ("Space", "Voyager 1 passes one light-day from Earth", -118.2, 34.1),
+    ("Australia", "Canberra sanctions settlers over the West Bank", 149.1, -35.3),
+    ("Haiti", "Salvadoran troops raze a gang leader's home", -72.3, 18.5),
 ]
 
 REGION_HUE = {
@@ -119,6 +137,8 @@ BRIEF_REGION = {
     "Sudan": "Africa", "Nigeria": "Africa", "Africa": "Africa",
     "Tech": "Americas", "Finance": "Americas", "Washington": "Americas",
     "Markets": "Americas", "Americas": "Americas",
+    "Bangladesh": "Asia", "Space": "Americas", "Australia": "Asia",
+    "Horn": "Africa", "Haiti": "Americas",
     "Climate": "Global",
 }
 
@@ -140,6 +160,40 @@ def continents():
     seen = {CONTINENT[s[0]] for s in STORIES} - {None}
     assert seen <= names, "unknown continent: %r" % (seen - names)
     return len(seen)
+
+
+def fields():
+    """The page's second index: every item counted by subject, not by place.
+
+    Derived from the beats on the cards and from a subject tag on the briefs, so
+    the two indexes always agree on the total.
+    """
+    n = {}
+    for s in STORIES:
+        b = s[1].lower()
+        if "iran" in b or "ukraine" in b or "gaza" in b:
+            f = "War"
+        elif "diplomacy" in b or "summit" in b:
+            f = "Diplomacy"
+        elif "politics" in b:
+            f = "Politics"
+        elif "economy" in b or "markets" in b or "finance" in b:
+            f = "Economy"
+        elif "disaster" in b or "climate" in b:
+            f = "Climate"
+        elif "space" in b or "tech" in b:
+            f = "Tech"
+        else:
+            f = "Society"
+        n[f] = n.get(f, 0) + 1
+    for k, _t, _lon, _lat in BRIEFS:
+        f = BRIEF_FIELD.get(k, "Society")
+        n[f] = n.get(f, 0) + 1
+    assert sum(n.values()) == len(STORIES) + len(BRIEFS), \
+        "field index %d != %d" % (sum(n.values()), len(STORIES) + len(BRIEFS))
+    order = ["War", "Politics", "Diplomacy", "Economy", "Climate", "Tech",
+             "Society"]
+    return [(f, n[f]) for f in order if n[f]]
 
 
 def census():
@@ -219,11 +273,15 @@ def masthead(pg):
     d = pg.d
     d.line([(M, 18), (W - M, 18)], fill=INK, width=3)
     tracked(d, M, 25, "THE DAY IN WORLD NEWS", bold(9), INK, 1.6)
+    # the flag line, and the inventory beside it: every figure derived from the
+    # content below, so the page cannot misstate its own contents
     ncon = continents()
+    nreg = len(census())
+    nfld = len(fields())
     d.text((W - M, 26),
-           "%d STORIES · %d BRIEFS · %d CONTINENTS"
-           % (len(STORIES), len(BRIEFS), ncon),
-           font=bold(8), fill=GREY, anchor="ra")
+           "%d ILLUSTRATED · %d ITEMS · %d REGIONS · %d FIELDS · %d CONTINENTS"
+           % (len(STORIES), len(STORIES) + len(BRIEFS), nreg, nfld, ncon),
+           font=bold(8), fill=RED, anchor="ra")
     d.text((M, 40), "Wednesday 18 November 2026", font=serif(52), fill=INK)
     d.text((W - M, 101), "One day, one page: what happened on 18 November.",
            font=reg(11), fill=GREY, anchor="ra")
@@ -244,6 +302,13 @@ def masthead(pg):
     # numbering systems on this page cannot be confused for one another
     parts = "   ".join("%s %d" % (k.upper(), c) for k, c in cen)
     tracked(d, M, 131, parts + "   = %d ITEMS" % total, bold(6.2), GREY, 0.9)
+    # the same items again, indexed by subject: a second axis over one set, so
+    # the page can be read by place or by kind
+    fidx = fields()
+    fparts = "   ".join("%s %d" % (f.upper(), c) for f, c in fidx)
+    assert sum(c for _f, c in fidx) == total
+    tracked(d, W - M - tracked_w(d, fparts, bold(6.2), 0.9), 131,
+            fparts, bold(6.2), RED, 0.9)
     return 141
 
 
@@ -354,11 +419,17 @@ def briefs(pg, x, y, w, cols=2):
     for i, (k, s, lon, lat) in enumerate(BRIEFS):
         c, r = i // per, i % per
         cx, cy = x + c * (cw + 12), y + r * rh
-        d.text((cx, cy), k + " — ", font=bold(7.2), fill=RED)
+        # one numbering spine: the briefs carry on where the cards stopped, so
+        # the map's dots and the page's items are the same set of numbers
+        num = "%d" % (len(STORIES) + i + 1)
+        d.text((cx, cy), num, font=bold(6.4), fill=GREY)
+        nw = tw(d, num, bold(6.4)) + 3.2
+        d.text((cx + nw, cy), k + " — ", font=bold(7.2), fill=RED)
         kw = tw(d, k + " — ", bold(7.2))
-        lines = wrap(d, s, reg(7.2), cw - kw)
+        avail = cw - kw - nw
+        lines = wrap(d, s, reg(7.2), avail)
         for j, ln in enumerate(lines[:2]):
-            d.text((cx + kw, cy + j * 8.6), ln, font=reg(7.2), fill=INK)
+            d.text((cx + nw + kw, cy + j * 8.6), ln, font=reg(7.2), fill=INK)
     pg.mark(y + rh * (per - 1) + 9)
 
 

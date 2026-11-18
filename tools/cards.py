@@ -231,76 +231,94 @@ def inflation(w, h):
 
 # 8 ------------------------------------------------ Sudan: drones on a city --
 def sudan(w, h):
+    """A drone over El Obeid: the town in close, one strike already landed."""
     im, d = new_plate(w, h, "sage")
-    win = (26.0, 35.0, 9.0, 18.0)
-    world_map(im, d, (0, 0, w, h), "sage", win=win, min_area=1.0,
-              fill=(196, 210, 186))
+    # a tight window on North Kordofan, so the land fills the plate
+    win = (27.6, 33.4, 11.2, 15.6)
+    world_map(im, d, (0, 0, w, h), "sage", win=win, min_area=0.4,
+              fill=(176, 194, 164))
     ex, ey = geo.project_win(30.2, 13.2, (0, 0, w, h), win)
-    bw = max(6.0, w * 0.045)
-    # the town, one roof missing where a strike landed
-    hit = {(0, 1), (1, 1), (2, 2)}
-    for i in range(9):
-        c, r = i % 3, i // 3
-        bx = ex - bw * 2.6 + c * bw * 1.35
-        by = ey - bw * 0.4 + r * bw * 1.15
-        if (c, r) in hit:
-            continue
-        rect(d, bx, by, bw, bw * 0.78, fill=DEEP["sage"])
-        rect(d, bx + 1, by + 1, bw * 0.34, bw * 0.3, fill=(196, 210, 186))
-    # rubble and fire where the roofs were
-    for c, r in hit:
-        bx = ex - bw * 2.6 + c * bw * 1.35
-        by = ey - bw * 0.4 + r * bw * 1.15
-        for k in range(4):
-            poly(d, [(bx + k * bw * 0.26, by + bw * 0.72),
-                     (bx + k * bw * 0.26 + bw * 0.18, by + bw * 0.40),
-                     (bx + k * bw * 0.26 + bw * 0.30, by + bw * 0.74)],
-                 fill=DEEP["sage"])
-        ellipse(d, bx + bw * 0.45, by + bw * 0.44, max(1.6, w * 0.009), fill=RED)
-    # a quadcopter: four arms in an X, rotor discs, a body
-    dx, dy = ex + bw * 0.3, ey - bw * 3.0
-    aw = max(4.0, w * 0.028)
+    bw = max(9.0, w * 0.075)
+    # the town, a dense block of roofs, three of them knocked out
+    hit = {(1, 1), (2, 2), (3, 0)}
+    for r in range(3):
+        for c in range(4):
+            bx = ex - bw * 2.1 + c * bw * 1.28
+            by = ey + bw * 0.35 + r * bw * 1.10
+            if (c, r) in hit:
+                for k in range(3):
+                    poly(d, [(bx + k * bw * 0.34, by + bw * 0.80),
+                             (bx + k * bw * 0.34 + bw * 0.22, by + bw * 0.44),
+                             (bx + k * bw * 0.34 + bw * 0.38, by + bw * 0.82)],
+                         fill=DEEP["sage"])
+                ellipse(d, bx + bw * 0.5, by + bw * 0.5, max(2.4, w * 0.014),
+                        fill=RED)
+                continue
+            rect(d, bx, by, bw, bw * 0.84, fill=DEEP["sage"])
+            rect(d, bx + bw * 0.14, by + bw * 0.14, bw * 0.30, bw * 0.28,
+                 fill=(176, 194, 164))
+            rect(d, bx + bw * 0.56, by + bw * 0.14, bw * 0.20, bw * 0.28,
+                 fill=(176, 194, 164))
+    # the drone overhead, large enough to read at thumbnail size
+    dx, dy = ex + bw * 0.9, ey - bw * 2.5
+    aw = max(7.0, w * 0.052)
     for ax, ay in ((-1, -1), (1, -1), (-1, 1), (1, 1)):
-        line(d, [(dx, dy), (dx + ax * aw, dy + ay * aw * 0.8)], INK, 1.0)
-        ellipse(d, dx + ax * aw, dy + ay * aw * 0.8, aw * 0.52, aw * 0.16,
+        line(d, [(dx, dy), (dx + ax * aw, dy + ay * aw * 0.82)], INK, 1.4)
+        ellipse(d, dx + ax * aw, dy + ay * aw * 0.82, aw * 0.50, aw * 0.17,
                 fill=INK)
-    ellipse(d, dx, dy, aw * 0.34, aw * 0.24, fill=INK)
-    # its descent vector, arrowhead landing on the struck block
-    tx, ty = ex + bw * 0.45, ey + bw * 0.34
-    line(d, [(dx, dy + aw * 0.3), (tx, ty - 4)], RED, 0.9, dash=(2.4, 2.2))
-    arrow(d, (tx - 0.5, ty - 8), (tx, ty - 1.5), RED, 0.9, 2.6)
-    label(d, (ex, ey + bw * 2.5), "EL OBEID", 5.4, INK, w, h, "sansb", "ma")
+    ellipse(d, dx, dy, aw * 0.30, aw * 0.22, fill=INK)
+    # its descent, onto the block it struck
+    tx, ty = ex + bw * 1.1, ey + bw * 1.1
+    line(d, [(dx, dy + aw * 0.4), (tx, ty - 5)], RED, 1.1, dash=(3.0, 2.6))
+    arrow(d, (tx - 0.6, ty - 10), (tx, ty - 1.5), RED, 1.1, 3.2)
+    # the caption in the corner the town leaves free, like every other plate
+    label(d, (4, 4), "EL OBEID", 6.0, INK, w, h, "sansb", "la")
     return done(im, w, h)
 
 
 # 9 ------------------------------------------------- Nvidia: a doubling, then --
 def nvidia(w, h):
+    """One chip whose right-hand pins become the revenue bars, on one ground."""
     im, d = new_plate(w, h, "stone")
-    # chip die with pins
-    cx, cy = w * 0.22, h * 0.46
-    s_ = min(w, h) * 0.15
-    for i in range(5):
-        off = -s_ * 0.6 + i * s_ * 0.3
+    cx, cy = w * 0.24, h * 0.58
+    s_ = min(w, h) * 0.18
+    base = cy + s_ * 0.46
+    # the ground line: chip, pins and bars all stand on it
+    line(d, [(w * 0.04, base), (w * 0.97, base)], DEEP["stone"], 1.2)
+    for i in range(6):
+        off = -s_ * 0.7 + i * s_ * 0.28
         rect(d, cx - s_ - 3, cy + off - 1, 3, 2, fill=DEEP["stone"])
-        rect(d, cx + s_, cy + off - 1, 3, 2, fill=DEEP["stone"])
-        rect(d, cx + off - 1, cy - s_ - 3, 2, 3, fill=DEEP["stone"])
-        rect(d, cx + off - 1, cy + s_, 2, 3, fill=DEEP["stone"])
-    rect(d, cx - s_, cy - s_, s_ * 2, s_ * 2, fill=DEEP["stone"], r=1.5)
-    rect(d, cx - s_ * 0.5, cy - s_ * 0.5, s_, s_, fill=PLATE["stone"], r=1)
-    # the doubling
-    pts = [(w * 0.46 + i / 4.0 * w * 0.22,
-            h * 0.72 - i / 4.0 * h * 0.42) for i in range(5)]
-    line(d, pts, (40, 96, 60), 2.2)
-    text(d, (w * 0.46, h * 0.78), "$115.8bn", 8.6, INK, "serifb", "la")
-    text(d, (w * 0.46, h * 0.855), "+103% YOY", 5.2, (40, 96, 60), "sansb", "la")
-    # then the probe: a magnifier over a red band on the right
-    gx, gy = w * 0.80, h * 0.40
+        rect(d, cx - s_ * 0.6 + i * s_ * 0.24, cy + s_ * 0.88, 2, 3,
+             fill=DEEP["stone"])
+    rect(d, cx - s_, cy - s_, s_ * 2, s_ * 1.44, fill=DEEP["stone"], r=1.5)
+    rect(d, cx - s_ * 0.52, cy - s_ * 0.54, s_ * 1.04, s_ * 0.74,
+         fill=PLATE["stone"], r=1)
+    # seven pins leave the right edge and grow into bars: grey at the chip,
+    # green at the peak, so the morph reads as growth rather than two diagrams
+    n = 7
+    x0, x1 = cx + s_, w * 0.60
+    for i in range(n):
+        t = i / (n - 1.0)
+        bx = x0 + (x1 - x0) * t
+        bh = h * (0.10 + 0.055 * i)
+        mix = min(1.0, max(0.0, (t - 0.10) / 0.55))
+        col = (int(120 + (40 - 120) * mix), int(114 + (96 - 114) * mix),
+               int(104 + (60 - 104) * mix))
+        rect(d, bx, base - bh, max(2.6, w * 0.013), bh, fill=col)
+    text(d, (w * 0.60, h * 0.25), "$115.8bn", 9.4, INK, "serifb", "la")
+    text(d, (w * 0.60, h * 0.345), "+103% YOY", 5.4, (40, 96, 60), "sansb", "la")
+    # the lens examines the peak, and its label is tied to it
+    gx, gy = x1 - (x1 - x0) * 0.08, base - h * 0.47
     r = min(w, h) * 0.13
-    ellipse(d, gx, gy, r, r, outline=RED, width=2.0)
-    line(d, [(gx + r * 0.72, gy + r * 0.72),
-             (gx + r * 1.65, gy + r * 1.65)], RED, 2.4)
-    label(d, (gx, gy + r * 2.5), "SEC", 6.4, RED, w, h, "sansb", "ma")
-    label(d, (gx, gy + r * 2.5 + 9), "PROBE", 4.8, INK, w, h, "sansb", "ma")
+    ellipse(d, gx, gy, r, r, outline=RED, width=2.2)
+    line(d, [(gx + r * 0.72, gy - r * 0.72),
+             (gx + r * 1.60, gy - r * 1.60)], RED, 2.6)
+    # the label, kept on the plate and joined to the lens by a leader
+    lx = min(gx + r * 1.85, w - 6)
+    ly = max(gy - r * 1.55, 6)
+    line(d, [(gx + r * 0.95, gy - r * 0.95), (lx - 1, ly + 5)], RED, 0.8,
+         dash=(2.0, 2.0))
+    label(d, (w - 4, 4), "SEC PROBE", 5.8, RED, w, h, "sansb", "ra")
     return done(im, w, h)
 
 
