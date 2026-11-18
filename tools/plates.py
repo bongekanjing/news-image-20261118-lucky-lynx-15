@@ -57,9 +57,10 @@ def land():
 
 from pathlib import Path
 
-_HERE_DATA = Path(__file__).resolve().parent / "data"
-if not _HERE_DATA.is_dir():
-    _HERE_DATA = Path(__file__).resolve().parent.parent / "data"
+_HERE_DATA = next(
+    (p for p in (Path(__file__).resolve().parent / "data",
+                 Path(__file__).resolve().parent.parent / "data") if p.is_dir()),
+    Path(__file__).resolve().parent / "data")
 
 
 # ------------------------------------------------------------- primitives ----

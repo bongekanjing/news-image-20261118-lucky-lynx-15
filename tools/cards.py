@@ -79,26 +79,35 @@ def summit(w, h):
     return done(im, w, h)
 
 
-# 3 ------------------------------------------ Alaska: the Senate seat flips --
-def senate(w, h):
+# 3 ------------------------------------------ Jeffries: the speaker nomination --
+def jeffries(w, h):
+    """House chamber seen from the well: the party vote, 251 to 11."""
     im, d = new_plate(w, h, "sky")
-    # proportional seat bar: 56 blue, 44 red
-    bx, by, bw, bh = w * 0.07, h * 0.16, w * 0.86, h * 0.13
-    total = 100
-    wd = bw / total
-    rect(d, bx, by, wd * 56, bh, fill=DEEP["sky"])
-    rect(d, bx + wd * 56, by, wd * 44, bh, fill=(178, 92, 74))
-    text(d, (bx + 2, by + bh / 2), "56 DEM", 6.4, CREAM, "sansb", "lm")
-    text(d, (bx + bw - 2, by + bh / 2), "44 REP", 6.4, CREAM, "sansb", "rm")
-    # Alaska, drawn from the projection
-    win = (-172.0, -128.0, 50.0, 72.0)
-    world_map(im, d, (w * 0.06, h * 0.36, w * 0.52, h * 0.50), "sky",
-              win=win, min_area=1.0, fill=(46, 88, 140))
-    # the flip
-    text(d, (w * 0.63, h * 0.44), "+1", 20, RED, "serifb", "lm")
-    text(d, (w * 0.63, h * 0.63), "SEAT HELD", 6.2, GREY, "sansb", "lm")
-    text(d, (w * 0.63, h * 0.75), "9 FLIPPED", 6.2, GREY, "sansb", "lm")
-    label(d, (w - 3, 3), "SEATS", 5.4, INK, w, h, "sansb", "ra")
+    # the chamber's stepped benches, in section: five rising arcs
+    cx, cy = w * 0.50, h * 1.45
+    for i in range(5):
+        r = (0.44 + i * 0.075) * w
+        d.arc([cx - r, cy - r, cx + r, cy + r], 208, 332,
+              fill=(84, 76, 64), width=1)
+    # members as short ticks along the two front benches, ayes then nays
+    ay, ny = 251, 11
+    seats = 62
+    for i in range(seats):
+        t = i / (seats - 1.0)
+        ang = 214 + t * 112
+        rad = 0.46 * w
+        x = cx + rad * math.cos(math.radians(ang))
+        y = cy + rad * math.sin(math.radians(ang))
+        if i < seats * ay / (ay + ny):
+            rect(d, x - 0.5, y - 2.4, 1.0, 4.8, fill=(46, 74, 116))
+        else:
+            rect(d, x - 0.5, y - 2.4, 1.0, 4.8, fill=(150, 78, 62))
+    # the tally, as the vote itself
+    text(d, (w * 0.5, h * 0.30), "%d" % ay, 27, (46, 74, 116), "serifb", "mm")
+    text(d, (w * 0.5, h * 0.44), "AYE", 5.6, GREY, "sansb", "mm")
+    text(d, (w * 0.84, h * 0.30), "%d" % ny, 13, (150, 78, 62), "serifb", "mm")
+    text(d, (w * 0.84, h * 0.38), "NO", 5.0, GREY, "sansb", "mm")
+    label(d, (3, 3), "HOUSE", 5.4, INK, w, h, "sansb", "la")
     return done(im, w, h)
 
 
@@ -419,5 +428,5 @@ def space(w, h):
     return done(im, w, h)
 
 
-PLATES = [gulf, summit, senate, ukraine, gaza, cyclone, inflation, sudan,
+PLATES = [gulf, summit, jeffries, ukraine, gaza, cyclone, inflation, sudan,
           nvidia, knesset, cop31, venezuela, space]

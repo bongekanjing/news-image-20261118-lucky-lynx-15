@@ -16,11 +16,13 @@ one-line briefs. Thirty-seven stories across four continents.
 
 Reading order is deliberate:
 
-- **Masthead** names the day: `WEDNESDAY 18 NOVEMBER 2026`.
+- **Masthead** names the day: `WEDNESDAY 18 NOVEMBER 2026`, under a rule whose
+  six blocks are the region colours widened by their share of the page — a census
+  in colour, spelled out in words beneath it.
 - **Lead row, three wide cards**: the Gulf war (Kuwait and Bahrain repelling
   Iranian drones after the US strike on Qeshm), the Xi–Trump meeting on the eve of
-  the trilateral with Putin in Shenzhen, and Peltola's Alaska win giving the
-  Democrats 56 Senate seats.
+  the trilateral with Putin in Shenzhen, and the House Democrats nominating Hakeem
+  Jeffries for speaker by 251 votes to 11.
 - **Ten equal cards**: Ukraine's grid, Gaza, Cyclone Akvan, UK inflation, Sudan's
   El Obeid strikes, Nvidia, the Knesset speaker vote, COP31 in Antalya, Hegseth in
   Caracas, and the Long March 2D launch.
@@ -44,8 +46,9 @@ photograph, so the page carries no third-party imagery:
   ellipses, dashes, arrows, and a `label()` that measures each string and clamps it
   inside the plate so no label can be sheared off at a card edge.
 - `tools/cards.py` holds the thirteen plate functions, one per story — a Gulf map
-  with drone tracks out of Qeshm, three flags and a table in Shenzhen, an Alaska
-  seat bar, a Ukraine strike map, ruined blocks and an armoured column at Nuseirat,
+  with drone tracks out of Qeshm, three flags and a table in Shenzhen, a chamber
+  hemicycle with the 251–11 tally, a Ukraine strike map, ruined blocks and an
+  armoured column at Nuseirat,
   a cyclone spiral, an inflation stair, a drone over El Obeid's rooftops, a chip
   with its doubling and an SEC magnifier, a Knesset vote bar, a split negotiating
   table, a map with a government aircraft on approach, and two rockets on their pads.
@@ -65,7 +68,7 @@ mkdir -p out && MAKEFUN_OUTPUT_DIR=out python3 main.py
 ```
 
 The page is copied as bytes rather than re-encoded, so both graded runs write
-identical output: a 1024×1024 PNG of about 231 KB, well inside the 1 MiB cap.
+identical output: a 1024×1024 PNG of about 244 KB, well inside the 1 MiB cap.
 
 ## Layout of this repository
 
@@ -88,7 +91,7 @@ cd tools && python3 layout2.py   # writes /tmp/page.png
 
 - Two consecutive runs produce byte-identical output — the program copies bytes and
   re-encodes nothing.
-- The PNG is 1024×1024 and 232,945 bytes — under the 1 MiB limit.
+- The PNG is 1024×1024 and 249,517 bytes — under the 1 MiB limit.
 - All PNG chunk CRCs verify and the stream ends at its IEND marker.
 - No text is clipped, overlapping or below the legibility floor: card text blocks
   are measured against the row below, the page bottom is asserted, and every

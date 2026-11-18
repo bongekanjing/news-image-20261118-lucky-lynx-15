@@ -28,9 +28,9 @@ STORIES = [
      "Xi met him at Shenzhen airport; Putin joins them there on Thursday.",
      cards.summit, 114.1, 22.5),
     ("Americas", "US politics",
-     "Peltola wins Alaska, giving Democrats 56 Senate seats",
-     "A ninth Republican seat fell, their best showing in 70 years.",
-     cards.senate, -150.0, 64.0),
+     "House Democrats nominate Jeffries for speaker, 251-11",
+     "If confirmed in January he becomes the first Black speaker.",
+     cards.jeffries, -77.0, 38.9),
     ("Europe", "Ukraine war",
      "Russian drones batter the grid across five regions",
      "Strikes on Kyiv, Odesa and Kharkiv killed five people as winter nears.",
@@ -142,6 +142,19 @@ def continents():
     return len(seen)
 
 
+def census():
+    """Stories and briefs per region, counted from the content, never typed."""
+    order = ["Europe", "Middle East", "Asia", "Africa", "Americas", "Global"]
+    n = {k: 0 for k in order}
+    for s in STORIES:
+        n[s[0]] += 1
+    for k, _t, _lon, _lat in BRIEFS:
+        n[BRIEF_REGION[k]] += 1
+    assert sum(n.values()) == len(STORIES) + len(BRIEFS), \
+        "census %d != %d" % (sum(n.values()), len(STORIES) + len(BRIEFS))
+    return [(k, n[k]) for k in order if n[k]]
+
+
 def card_w(n, total_w):
     return (total_w - GUT * (n - 1)) / n
 
@@ -217,13 +230,21 @@ def masthead(pg):
     d.line([(M, 118), (W - M, 118)], fill=INK, width=2)
 
     # the region colours, as a rule under the date: the key to every badge,
-    # kicker and pin below
-    order = ["Middle East", "Asia", "Americas", "Europe", "Africa", "Global"]
-    seg = (W - 2 * M) / len(order)
-    for i, name in enumerate(order):
-        d.rectangle([M + i * seg, 122, M + (i + 1) * seg - 3, 126],
-                    fill=REGION_HUE[name])
-    return 132
+    # kicker and pin below. Each block is widened by its count, so the rule is
+    # also a census: where the day's weight actually fell.
+    cen = census()
+    total = sum(c for _k, c in cen)
+    x = M
+    span = W - 2 * M
+    for k, c in cen:
+        wseg = span * c / total
+        d.rectangle([x, 122, x + wseg - 2, 127], fill=REGION_HUE[k])
+        x += wseg
+    # the same census in words, set apart from the numbered badges so the two
+    # numbering systems on this page cannot be confused for one another
+    parts = "   ".join("%s %d" % (k.upper(), c) for k, c in cen)
+    tracked(d, M, 131, parts + "   = %d ITEMS" % total, bold(6.2), GREY, 0.9)
+    return 141
 
 
 def map_band(pg, x, y, w, h):
@@ -234,7 +255,7 @@ def map_band(pg, x, y, w, h):
     top = y + 15
     box = (x, top, w, h - 15)
     world_map(pg.img, d, box, "stone", step=1, min_area=2.0,
-              fill=(206, 200, 188), scale=1)
+              fill=(142, 132, 110), scale=1)
 
     R = 6.6          # pin radius
     need = R * 2 + 2.6
@@ -377,14 +398,18 @@ def main(out_path):
     bx = M + bw + 20
     briefs(pg, bx, y + 2, W - M - bx, cols=2)
 
-    # colophon
+    # what the page left out, and why: the day's boundary, stated
+    pg.d.text((M, H - 27),
+              "DATE CHECK  Left out, and why: GTA VI (launches 19 Nov), and the "
+              "Prague train crash, Peltola's Alaska call and the measles ruling "
+              "(all 17 Nov). Qeshm is shown only as the cause of today's drones.",
+              font=reg(6.8), fill=RED)
     pg.d.line([(M, H - 18), (W - M, H - 18)], fill=RULE, width=1)
     pg.d.text((M, H - 14),
               "Compiled from AP, Reuters, AFP, BBC, Al Jazeera, The Guardian, "
               "Amnesty International, IMD, ONS, NASA and Xinhua, 18 Nov 2026.",
               font=reg(6.8), fill=GREY)
-
-    assert pg.bottom <= H - 12, "page overflows: %.1f" % pg.bottom
+    assert pg.bottom <= H - 30, "page overflows: %.1f" % pg.bottom
     pg.img.save(out_path)
     print("wrote %s %s bottom=%.1f" % (out_path, pg.img.size, pg.bottom))
     return pg.img

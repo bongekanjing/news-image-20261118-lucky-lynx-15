@@ -18,9 +18,10 @@ HAIR = (208, 202, 192)
 NAVY = (22, 48, 82)
 
 HERE = Path(__file__).resolve().parent
-FONTS = HERE / "fonts"
-if not FONTS.is_dir():
-    FONTS = HERE.parent / "fonts"
+# the build tree keeps fonts beside tools/; the shipped entry keeps them inside
+# tools/, so try both and use whichever exists
+FONTS = next((p for p in (HERE / "fonts", HERE.parent / "fonts") if p.is_dir()),
+             HERE / "fonts")
 _cache = {}
 
 
