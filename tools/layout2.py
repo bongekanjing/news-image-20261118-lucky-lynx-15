@@ -74,30 +74,30 @@ STORIES = [
 ]
 
 BRIEFS = [
-    ("Israel", "Katz threatens more West Bank land seizures"),
-    ("Yemen", "UNICEF: 64 children killed since September"),
-    ("Afghanistan", "UN releases $18m for 824,000 people"),
-    ("Russia", "An-12 crash in Kemerovo kills all 19 aboard"),
-    ("Health", "WHO warns superbug resistance is worsening"),
-    ("Tech", "Waymo pulls its robotaxis off freeways"),
-    ("Finance", "Anthropic IPO priced at $70-78 a share"),
-    ("Washington", "NSA's classified network goes down"),
-    ("India", "CEC protests continue; police go to court"),
-    ("Sudan", "Darfur tribes sign a local ceasefire"),
-    ("Pakistan", "Dar draws a red line on Afghan soil"),
-    ("Nigeria", "CBN and NNPC sign a forex deal"),
-    ("Sport", "Moriyasu exits after Paraguay defeat"),
-    ("Mid-East", "Qatar and Egypt press for a Gaza summit"),
-    ("Europe", "Brussels weighs a 45bn-euro loan to Kyiv"),
-    ("Asia", "Seoul and Beijing seal a services trade deal"),
-    ("Africa", "AU: $80-125bn lost to illicit financial flows"),
-    ("Ukraine", "Zelensky proposes ten more evacuation routes"),
-    ("Britain", "Eight firms added to the Russia sanctions list"),
-    ("Climate", "2026 is on course for a record warm year"),
-    ("Mid-East", "Iran says six tankers have sunk since Friday"),
-    ("Markets", "Gold slips below $3,800 to a one-year low"),
-    ("Asia", "KOSPI gains 2.0% on a chip rebound"),
-    ("Americas", "Dow falls 848.75 points in a late selloff"),
+    ("Israel", "Katz threatens more West Bank land seizures", 35.2, 31.9),
+    ("Yemen", "UNICEF: 64 children killed since September", 44.2, 15.4),
+    ("Afghanistan", "UN releases $18m for 824,000 people", 69.2, 34.5),
+    ("Russia", "An-12 crash in Kemerovo kills all 19 aboard", 86.1, 55.4),
+    ("Health", "WHO warns superbug resistance is worsening", 6.1, 46.2),
+    ("Tech", "Waymo pulls its robotaxis off freeways", -122.4, 37.8),
+    ("Finance", "Anthropic IPO priced at $70-78 a share", -122.4, 37.8),
+    ("Washington", "NSA's classified network goes down", -77.0, 38.9),
+    ("India", "CEC protests continue; police go to court", 77.2, 28.6),
+    ("Sudan", "Darfur tribes sign a local ceasefire", 24.0, 13.0),
+    ("Pakistan", "Dar draws a red line on Afghan soil", 73.1, 33.7),
+    ("Nigeria", "CBN and NNPC sign a forex deal", 7.5, 9.1),
+    ("Sport", "Moriyasu exits after Paraguay defeat", 139.7, 35.7),
+    ("Mid-East", "Qatar and Egypt press for a Gaza summit", 51.5, 25.3),
+    ("Europe", "Brussels weighs a 45bn-euro loan to Kyiv", 4.4, 50.8),
+    ("Asia", "Seoul and Beijing seal a services trade deal", 127.0, 37.6),
+    ("Africa", "AU: $80-125bn lost to illicit financial flows", 38.7, 9.0),
+    ("Ukraine", "Zelensky proposes ten more evacuation routes", 30.5, 50.4),
+    ("Britain", "Eight firms added to the Russia sanctions list", -0.1, 51.5),
+    ("Climate", "2026 is on course for a record warm year", 0.0, 0.0),
+    ("Mid-East", "Iran says six tankers have sunk since Friday", 56.3, 26.9),
+    ("Markets", "Gold slips below $3,800 to a one-year low", -74.0, 40.7),
+    ("Asia", "KOSPI gains 2.0% on a chip rebound", 127.0, 37.6),
+    ("Americas", "Dow falls 848.75 points in a late selloff", -74.0, 40.7),
 ]
 
 REGION_HUE = {
@@ -109,9 +109,37 @@ REGION_HUE = {
     "Global": (100, 96, 88),
 }
 
+# which region hue each brief's dot takes on the map
+BRIEF_REGION = {
+    "Israel": "Middle East", "Yemen": "Middle East", "Mid-East": "Middle East",
+    "Afghanistan": "Asia", "India": "Asia", "Pakistan": "Asia",
+    "Asia": "Asia", "Sport": "Asia",
+    "Russia": "Asia", "Britain": "Europe", "Europe": "Europe",
+    "Ukraine": "Europe", "Health": "Europe",
+    "Sudan": "Africa", "Nigeria": "Africa", "Africa": "Africa",
+    "Tech": "Americas", "Finance": "Americas", "Washington": "Americas",
+    "Markets": "Americas", "Americas": "Americas",
+    "Climate": "Global",
+}
+
 M = 30           # page margin
 GUT = 13         # gutter between cards
 TRIM = H - 30    # nothing may cross this
+
+# the continent each region belongs to, for the masthead's own count
+CONTINENT = {
+    "Middle East": "Asia", "Asia": "Asia", "Americas": "the Americas",
+    "Europe": "Europe", "Africa": "Africa", "Oceania": "Oceania",
+    "Global": None,
+}
+
+
+def continents():
+    """The continents this page actually covers, named. Derived, never typed."""
+    names = {"Africa", "the Americas", "Asia", "Europe", "Oceania"}
+    seen = {CONTINENT[s[0]] for s in STORIES} - {None}
+    assert seen <= names, "unknown continent: %r" % (seen - names)
+    return len(seen)
 
 
 def card_w(n, total_w):
@@ -130,14 +158,24 @@ class Page:
         self.bottom = max(self.bottom, y)
 
 
-def draw_card(pg, x, y, w, plate_h, story, hs_seq, max_head, dek_lines):
+def draw_card(pg, x, y, w, plate_h, story, hs_seq, max_head, dek_lines,
+              number=None):
     """One card; returns the y it ended at."""
     d = pg.d
     region, beat, head, dek, fn, lon, lat = story
     pg.img.paste(fn(int(w), int(plate_h)), (int(x), int(y)))
-    yy = y + plate_h + 6
 
+    # the number badge, in the region's colour, matching the pin on the map
     hue = REGION_HUE[region]
+    if number is not None:
+        br = 6.2
+        bx, by = x + br + 1, y + plate_h - br - 1
+        d.ellipse([bx - br, by - br, bx + br, by + br], fill=hue)
+        d.ellipse([bx - br, by - br, bx + br, by + br], outline=PAPER, width=1)
+        d.text((bx, by + 0.3), str(number), font=bold(7.0), fill=PAPER,
+               anchor="mm")
+
+    yy = y + plate_h + 6
     tracked(d, x, yy, region.upper(), bold(7), hue, 1.1)
     kw = tracked_w(d, region.upper(), bold(7), 1.1)
     d.text((x + kw + 5, yy), "· " + beat.upper(), font=bold(7), fill=GREY)
@@ -168,13 +206,24 @@ def masthead(pg):
     d = pg.d
     d.line([(M, 18), (W - M, 18)], fill=INK, width=3)
     tracked(d, M, 25, "THE DAY IN WORLD NEWS", bold(9), INK, 1.6)
-    d.text((W - M, 26), "13 STORIES · 24 BRIEFS · SIX CONTINENTS",
+    ncon = continents()
+    d.text((W - M, 26),
+           "%d STORIES · %d BRIEFS · %d CONTINENTS"
+           % (len(STORIES), len(BRIEFS), ncon),
            font=bold(8), fill=GREY, anchor="ra")
     d.text((M, 40), "Wednesday 18 November 2026", font=serif(52), fill=INK)
     d.text((W - M, 101), "One day, one page: what happened on 18 November.",
            font=reg(11), fill=GREY, anchor="ra")
     d.line([(M, 118), (W - M, 118)], fill=INK, width=2)
-    return 130
+
+    # the region colours, as a rule under the date: the key to every badge,
+    # kicker and pin below
+    order = ["Middle East", "Asia", "Americas", "Europe", "Africa", "Global"]
+    seg = (W - 2 * M) / len(order)
+    for i, name in enumerate(order):
+        d.rectangle([M + i * seg, 122, M + (i + 1) * seg - 3, 126],
+                    fill=REGION_HUE[name])
+    return 132
 
 
 def map_band(pg, x, y, w, h):
@@ -225,6 +274,22 @@ def map_band(pg, x, y, w, h):
                for i, a in enumerate(placed) for b in placed[i + 1:])
     assert mind >= need - 0.01, "pins still collide: %.2f" % mind
 
+    # the briefs, as small unnumbered dots in their region's colour: the day's
+    # whole geography, not only the thirteen leads
+    dots = []
+    for k, s, lon, lat in BRIEFS:
+        if lon == 0.0 and lat == 0.0:
+            continue                      # a story with no single place
+        dx, dy = geo.project(lon, lat, box)
+        hue = REGION_HUE[BRIEF_REGION[k]]
+        if any(math.hypot(dx - q[0], dy - q[1]) < need * 0.92 for q in placed):
+            continue                      # too near a numbered pin to add
+        if any(math.hypot(dx - q[0], dy - q[1]) < 4.0 for q in dots):
+            continue                      # two briefs at one place: one dot
+        dots.append((dx, dy, hue))
+    for dx, dy, hue in dots:
+        d.ellipse([dx - 2.0, dy - 2.0, dx + 2.0, dy + 2.0], fill=hue)
+
     for k, (px, py, region, i) in enumerate(pos):
         hue = REGION_HUE[region]
         ox, oy = geo.project(STORIES[i - 1][5], STORIES[i - 1][6], box)
@@ -237,13 +302,17 @@ def map_band(pg, x, y, w, h):
 
 
 def legend(pg, x, y):
+    """The key: the same colours the badges carry, in the same order."""
     d = pg.d
+    x0 = x
     for name, col in (("Middle East", (54, 96, 92)), ("Asia", (146, 108, 44)),
                       ("Americas", (52, 82, 118)), ("Europe", (86, 74, 122)),
                       ("Africa", (74, 100, 64)), ("Global", (100, 96, 88))):
+        if x - x0 > 250:
+            break
         d.ellipse([x, y + 2, x + 6, y + 8], fill=col)
-        d.text((x + 9, y), name, font=reg(7.2), fill=GREY)
-        x += 9 + tw(d, name, reg(7.2)) + 9
+        d.text((x + 9, y), name, font=reg(7.0), fill=GREY)
+        x += 9 + tw(d, name, reg(7.0)) + 8
     pg.mark(y + 9)
 
 
@@ -261,7 +330,7 @@ def briefs(pg, x, y, w, cols=2):
     per = (len(BRIEFS) + cols - 1) // cols
     rh = min(13.5, (TRIM - 12 - y) / per)
 
-    for i, (k, s) in enumerate(BRIEFS):
+    for i, (k, s, lon, lat) in enumerate(BRIEFS):
         c, r = i // per, i % per
         cx, cy = x + c * (cw + 12), y + r * rh
         d.text((cx, cy), k + " — ", font=bold(7.2), fill=RED)
@@ -280,8 +349,9 @@ def main(out_path):
     cw3 = card_w(3, W - 2 * M)
     xs = [M + i * (cw3 + GUT) for i in range(3)]
     y = top + 10
-    for x, s in zip(xs, STORIES[:3]):
-        b = draw_card(pg, x, y, cw3, 116, s, (19, 18, 17, 16, 15), 2, 2)
+    for i, (x, s) in enumerate(zip(xs, STORIES[:3]), start=1):
+        b = draw_card(pg, x, y, cw3, 116, s, (19, 18, 17, 16, 15), 2, 2,
+                      number=i)
     y = b + 14
     pg.d.line([(M, y - 7), (W - M, y - 7)], fill=HAIR, width=1)
 
@@ -290,8 +360,9 @@ def main(out_path):
     xs5 = [M + i * (cw5 + GUT) for i in range(5)]
     for row in range(2):
         block = STORIES[3 + row * 5: 8 + row * 5]
-        for x, s in zip(xs5, block):
-            b = draw_card(pg, x, y, cw5, 72, s, (13, 12.5, 12, 11.5, 11), 3, 2)
+        for j, (x, s) in enumerate(zip(xs5, block)):
+            b = draw_card(pg, x, y, cw5, 72, s, (13, 12.5, 12, 11.5, 11), 3, 2,
+                          number=4 + row * 5 + j)
         y = b + 14
         if row == 0:
             pg.d.line([(M, y - 7), (W - M, y - 7)], fill=HAIR, width=1)

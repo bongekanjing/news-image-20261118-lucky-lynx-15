@@ -12,7 +12,7 @@ Bounty page: <https://make.fun/bounty/news-image-20261118>
 
 An illustrated front page: a masthead naming the day, thirteen stories each with
 a purpose-drawn vector illustration, a locator map of where they happened, and 24
-one-line briefs. Thirty-seven stories across six continents.
+one-line briefs. Thirty-seven stories across four continents.
 
 Reading order is deliberate:
 
@@ -88,7 +88,7 @@ cd tools && python3 layout2.py   # writes /tmp/page.png
 
 - Two consecutive runs produce byte-identical output — the program copies bytes and
   re-encodes nothing.
-- The PNG is 1024×1024 and 230,810 bytes — under the 1 MiB limit.
+- The PNG is 1024×1024 and 232,945 bytes — under the 1 MiB limit.
 - All PNG chunk CRCs verify and the stream ends at its IEND marker.
 - No text is clipped, overlapping or below the legibility floor: card text blocks
   are measured against the row below, the page bottom is asserted, and every
