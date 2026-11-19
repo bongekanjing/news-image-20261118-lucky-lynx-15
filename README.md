@@ -11,14 +11,14 @@ Bounty page: <https://make.fun/bounty/news-image-20261118>
 ## What the image is
 
 An illustrated front page: a masthead naming the day, thirteen stories each with
-a purpose-drawn vector illustration, a locator map of where they happened, and 24
-one-line briefs. Forty-two items across four continents.
+a purpose-drawn vector illustration, a locator map of where they happened, and 29
+one-line briefs. Forty-two items across five continents.
 
 Reading order is deliberate:
 
 - **Masthead** names the day: `WEDNESDAY 18 NOVEMBER 2026`, under a rule whose
-  six blocks are the region colours widened by their share of the page — a census
-  in colour, spelled out in words beneath it.
+  seven blocks are the region colours widened by their share of the page — a
+  census in colour, spelled out in words beneath it.
 - **Lead row, three wide cards**: the Gulf war (Kuwait and Bahrain repelling
   Iranian drones after the US strike on Qeshm), the Xi–Trump meeting on the eve of
   the trilateral with Putin in Shenzhen, and the House Democrats nominating Hakeem
@@ -55,9 +55,9 @@ photograph, so the page carries no third-party imagery:
   a cyclone spiral, an inflation stair, a drone over El Obeid's rooftops, a chip
   with its doubling and an SEC magnifier, a Knesset vote bar, a split negotiating
   table, a map with a government aircraft on approach, and two rockets on their pads.
-- `tools/layout2.py` composes the page: three tempos, a legend, an assertion that
-  the page bottom cannot overflow, and a greedy pin placer that proves no two
-  locator pins can collide.
+- `tools/layout2.py` composes the page: three tempos, a legend built from the
+  census so no region can drop out, an assertion that the page bottom cannot
+  overflow, and a greedy pin placer that proves no two locator pins can collide.
 
 Everything is supersampled 4× and downsampled with Lanczos, so edges stay clean.
 
@@ -94,7 +94,7 @@ cd tools && python3 layout2.py   # writes /tmp/page.png
 
 - Two consecutive runs produce byte-identical output — the program copies bytes and
   re-encodes nothing.
-- The PNG is 1024×1024 and 261,615 bytes — under the 1 MiB limit.
+- The PNG is 1024×1024 and 261,811 bytes — under the 1 MiB limit.
 - All PNG chunk CRCs verify and the stream ends at its IEND marker.
 - No text is clipped, overlapping or below the legibility floor: card text blocks
   are measured against the row below, the page bottom is asserted, and every

@@ -124,6 +124,7 @@ REGION_HUE = {
     "Americas": (52, 82, 118),
     "Europe": (86, 74, 122),
     "Africa": (74, 100, 64),
+    "Oceania": (44, 110, 120),
     "Global": (100, 96, 88),
 }
 
@@ -137,7 +138,7 @@ BRIEF_REGION = {
     "Sudan": "Africa", "Nigeria": "Africa", "Africa": "Africa",
     "Tech": "Americas", "Finance": "Americas", "Washington": "Americas",
     "Markets": "Americas", "Americas": "Americas",
-    "Bangladesh": "Asia", "Space": "Americas", "Australia": "Asia",
+    "Bangladesh": "Asia", "Space": "Americas", "Australia": "Oceania",
     "Horn": "Africa", "Haiti": "Americas",
     "Climate": "Global",
 }
@@ -155,9 +156,15 @@ CONTINENT = {
 
 
 def continents():
-    """The continents this page actually covers, named. Derived, never typed."""
+    """The continents this page actually covers, named. Derived, never typed.
+
+    Counted over every item on the page, cards and briefs alike: Australia's
+    sanctions story is a brief, and leaving the briefs out would undercount.
+    """
     names = {"Africa", "the Americas", "Asia", "Europe", "Oceania"}
-    seen = {CONTINENT[s[0]] for s in STORIES} - {None}
+    seen = {CONTINENT[s[0]] for s in STORIES}
+    seen |= {CONTINENT[BRIEF_REGION[k]] for k, _t, _lo, _la in BRIEFS}
+    seen -= {None}
     assert seen <= names, "unknown continent: %r" % (seen - names)
     return len(seen)
 
@@ -198,7 +205,8 @@ def fields():
 
 def census():
     """Stories and briefs per region, counted from the content, never typed."""
-    order = ["Europe", "Middle East", "Asia", "Africa", "Americas", "Global"]
+    order = ["Europe", "Middle East", "Asia", "Africa", "Oceania", "Americas",
+             "Global"]
     n = {k: 0 for k in order}
     for s in STORIES:
         n[s[0]] += 1
@@ -388,17 +396,24 @@ def map_band(pg, x, y, w, h):
 
 
 def legend(pg, x, y):
-    """The key: the same colours the badges carry, in the same order."""
+    """The key: the same colours the badges carry, in the same order.
+
+    Built from the census and the palette rather than a typed list, and laid
+    out over as many rows as it needs, so no region is ever silently dropped.
+    """
     d = pg.d
     x0 = x
-    for name, col in (("Middle East", (54, 96, 92)), ("Asia", (146, 108, 44)),
-                      ("Americas", (52, 82, 118)), ("Europe", (86, 74, 122)),
-                      ("Africa", (74, 100, 64)), ("Global", (100, 96, 88))):
-        if x - x0 > 250:
-            break
-        d.ellipse([x, y + 2, x + 6, y + 8], fill=col)
-        d.text((x + 9, y), name, font=reg(7.0), fill=GREY)
-        x += 9 + tw(d, name, reg(7.0)) + 8
+    top = y
+    for k, _c in census():
+        col = REGION_HUE[k]
+        label = k
+        wd = 9 + tw(d, label, reg(7.0))
+        if x > x0 and x + wd > x0 + 300:
+            x = x0
+            y += 10
+        d.rectangle([x, y + 2, x + 6, y + 8], fill=col)
+        d.text((x + 9, y), label, font=reg(7.0), fill=GREY)
+        x += wd + 8
     pg.mark(y + 9)
 
 
